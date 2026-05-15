@@ -72,6 +72,353 @@
 
     <!-- BARRE DE SAUVEGARDE -->
     <div class="save-bar">
+        <button type="button" class="save-btn" onclick="saveGame(false)">💾 Sauvegarder</button>
+        <button type="button" class="clear-btn" onclick="clearSave()">🗑️ Nouvelle Partie</button>
+    </div>
+
+    <!-- COMBAT & ACTIONS -->
+    <div class="card combat-card">
+        <h2>⚔️ Combat & Actions</h2>
+        <div class="turn-display">TOUR : <span id="turn-counter">1</span></div>
+        
+        <h3 style="color: var(--enemy-color); font-size: 1rem; margin-bottom: 10px; text-align: left;">👾 Les Adversaires</h3>
+        <div id="mobs-container"></div>
+        <button type="button" onclick="addMob()" class="btn-add-mob">➕ Ajouter un Monstre</button>
+
+        <button type="button" onclick="nextTurn()">➡️ FIN DU TOUR<br><small style="font-weight:normal;">(Mana +1 | État Mental -5)</small></button>
+        
+        <div class="form-group">
+            <label>Historique / Log</label>
+            <textarea id="action-log" placeholder="Les actions s'afficheront ici..."></textarea>
+        </div>
+        <button type="button" onclick="resetCombat()" style="background-color: #444; color: #fff; font-size: 12px; padding: 8px;">Réinitialiser le log</button>
+    </div>
+
+    <!-- VITALITÉ -->
+    <div class="card">
+        <h2>❤️ Vitalité & Mental</h2>
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="vitals-label">❤️ PV Joueur</label>
+                <div class="vital-box"><input type="number" id="hp-current" class="hp-input" value="100">/ <input type="number" id="hp-max" class="hp-input" value="100"></div>
+            </div>
+            <div class="form-group">
+                <label class="vitals-label">✨ Mana</label>
+                <div class="vital-box"><input type="number" id="mana-current" class="mana-input" value="50">/ <input type="number" id="mana-max" class="mana-input" value="50"></div>
+            </div>
+            <div class="form-group">
+                <label class="vitals-label">🧠 État Mental</label>
+                <div class="vital-box"><input type="number" id="mental-current" class="mental-input" value="100">/ <input type="number" id="mental-max" class="mental-input" value="100"></div>
+            </div>
+            <div class="form-group">
+                <label class="vitals-label">⚡ Stress</label>
+                <div class="vital-box"><input type="number" class="stress-input" value="0">/ <input type="number" class="stress-input" value="10"></div>
+            </div>
+        </div>
+        <div class="form-group"><label>Maladie Mentale</label><input type="text" placeholder="Description..."></div>
+    </div>
+
+    <!-- SORTS & INVENTAIRE -->
+    <div class="card">
+        <h2>🎒 Compétences & Inventaire</h2>
+        
+        <!-- SORTS -->
+        <div class="spell-container">
+            <label style="color: var(--mana-color); text-align: center; margin-bottom: 10px;">📖 Grimoire</label>
+            <div class="flex-row" style="margin-bottom: 15px;">
+                <input type="text" id="new-spell-name" placeholder="Nom du sort" style="flex-grow: 2;">
+                <input type="number" id="new-spell-cost" placeholder="Coût" style="width: 70px;">
+                <button type="button" onclick="createSpellFromInput()" class="btn-action" style="background-color: var(--mana-color); color: #000;">➕</button>
+            </div>
+            <div id="spells-list"></div>
+        </div>
+
+        <!-- PIÈCES D'OR -->
+        <div class="po-container">
+            <label style="color: var(--gold-color); text-align: center; margin-bottom: 10px;">💰 Pièces d'Or (PO)</label>
+            <input type="number" id="po-current" class="po-input" value="0" style="margin-bottom: 15px;">
+            <div class="flex-row">
+                <input type="number" id="po-amount" placeholder="Montant..." style="flex-grow: 1;">
+                <button type="button" onclick="addPO()" class="btn-action" style="background-color: var(--success-color); color: white;">➕</button>
+                <button type="button" onclick="spendPO()" class="btn-action" style="background-color: var(--enemy-color); color: white;">➖</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- IDENTITÉ -->
+    <div class="card">
+        <h2>👤 Personnage</h2>
+        <div class="grid-2">
+            <div class="form-group"><label>Prénom</label><input type="text"></div>
+            <div class="form-group"><label>Nom</label><input type="text"></div>
+            <div class="form-group"><label>Race</label><input type="text"></div>
+            <div class="form-group"><label>Classe</label><input type="text"></div>
+            <div class="form-group"><label>Niveau</label><input type="number" value="1"></div>
+            <div class="form-group"><label>Âge</label><input type="number"></div>
+            <div class="form-group"><label>Taille (cm)</label><input type="number"></div>
+            <div class="form-group"><label>Sexe</label><input type="text"></div>
+            <div class="form-group" style="grid-column: span 2;"><label>Attirance Sexuelle</label><input type="text"></div>
+        </div>
+    </div>
+
+    <!-- STATISTIQUES -->
+    <div class="card">
+        <h2>📊 Statistiques</h2>
+        <div class="grid-2">
+            <div class="form-group"><label>⚡ Initiation</label><input type="number" value="10"></div>
+            <div class="form-group"><label>💪 Force</label><input type="number" value="10"></div>
+            <div class="form-group"><label>💥 Puissance</label><input type="number" value="10"></div>
+            <div class="form-group"><label>🤸 Dextérité</label><input type="number" value="10"></div>
+            <div class="form-group"><label>🛡️ Constitution</label><input type="number" value="10"></div>
+            <div class="form-group"><label>🏃 Endurance</label><input type="number" value="10"></div>
+            <div class="form-group"><label>💨 Vitesse</label><input type="number" value="10"></div>
+            <div class="form-group"><label>🧠 Intelligence</label><input type="number" value="10"></div>
+            <div class="form-group"><label>👁️ Perception</label><input type="number" value="10"></div>
+            <div class="form-group"><label>🗣️ Charisme</label><input type="number" value="10"></div>
+            <div class="form-group"><label>🍀 Chance</label><input type="number" value="10"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- VARIABLES GLOBALES ---
+        var turnCount = 1;
+        var mobIdCounter = 0;
+        var spellIdCounter = 0;
+        var spellsDatabase = {};
+
+        // --- SYSTEME DE SAUVEGARDE (AVEC AUTO-SAVE) ---
+        function saveGame(silent) {
+            // 1. Forcer la mise à jour des attributs HTML
+            document.querySelectorAll('input, textarea').forEach(function(el) {
+                // On ne modifie pas l'élément si on est en train de taper dedans (évite les bugs de curseur)
+                if (document.activeElement !== el) {
+                    el.setAttribute('value', el.value);
+                    if (el.tagName.toLowerCase() === 'textarea') {
+                        el.innerHTML = el.value;
+                    }
+                }
+            });
+
+            // 2. Préparer l'objet de sauvegarde
+            var saveData = {
+                turnCount: turnCount,
+                mobIdCounter: mobIdCounter,
+                spellIdCounter: spellIdCounter,
+                spellsDatabase: spellsDatabase,
+                mobsHTML: document.getElementById('mobs-container').innerHTML,
+                spellsHTML: document.getElementById('spells-list').innerHTML,
+                inputsValues: {}
+            };
+
+            // 3. Sauvegarder la valeur de TOUTES les cases
+            var allInputs = document.querySelectorAll('input, textarea');
+            allInputs.forEach(function(el, index) {
+                saveData.inputsValues[index] = el.value;
+            });
+
+            // 4. Enregistrer dans le stockage local du téléphone
+            localStorage.setItem('jdrTrackerSave', JSON.stringify(saveData));
+            
+            // Si c'est un clic manuel, on affiche les messages, sinon c'est invisible
+            if (silent !== true) {
+                logAction("💾 Partie sauvegardée manuellement !");
+                alert("Sauvegarde réussie ! Vous pouvez fermer la page, vos données sont en sécurité.");
+            }
+        }
+
+        function loadGame() {
+            var saved = localStorage.getItem('jdrTrackerSave');
+            if(saved) {
+                var data = JSON.parse(saved);
+                
+                turnCount = data.turnCount || 1;
+                mobIdCounter = data.mobIdCounter || 0;
+                spellIdCounter = data.spellIdCounter || 0;
+                spellsDatabase = data.spellsDatabase || {};
+
+                document.getElementById('turn-counter').innerText = turnCount;
+                document.getElementById('mobs-container').innerHTML = data.mobsHTML || "";
+                document.getElementById('spells-list').innerHTML = data.spellsHTML || "";
+
+                var allInputs = document.querySelectorAll('input, textarea');
+                allInputs.forEach(function(el, index) {
+                    if(data.inputsValues[index] !== undefined) {
+                        el.value = data.inputsValues[index];
+                    }
+                });
+
+                logAction("📂 Reprise de la partie automatique.");
+                return true; 
+            }
+            return false; 
+        }
+
+        function clearSave() {
+            if(confirm("Êtes-vous sûr de vouloir tout effacer ? Toutes les stats, monstres et sorts seront perdus !")) {
+                localStorage.removeItem('jdrTrackerSave');
+                location.reload(); 
+            }
+        }
+
+        // ==========================================
+        // DÉTECTEURS D'AUTO-SAUVEGARDE (MAGIE ICI)
+        // ==========================================
+        
+        // S'active quand on ferme l'onglet ou qu'on quitte le navigateur
+        window.addEventListener('beforeunload', function() {
+            saveGame(true); // "true" pour le mode silencieux
+        });
+
+        // S'active quand on réduit l'application ou qu'on change d'onglet sur mobile
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                saveGame(true); // "true" pour le mode silencieux
+            }
+        });
+
+        // ==========================================
+
+        // --- UTILITAIRE LOG ---
+        function logAction(text) {
+            var log = document.getElementById('action-log');
+            var time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            log.value += "[" + time + "] " + text + "\n";
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // --- SORTS ---
+        function createSpell(name, cost) {
+            if (!name || isNaN(cost) || cost < 0) return;
+            
+            spellIdCounter++;
+            var currentId = spellIdCounter;
+            spellsDatabase[currentId] = { spellName: name, spellCost: cost };
+
+            var container = document.getElementById('spells-list');
+            var html = '<div id="spell-box-' + currentId + '" style="display: flex; justify-content: space-between; align-items: center; background: #222; padding: 8px; margin-bottom: 8px; border-radius: 5px; border-left: 4px solid #03dac6;">' +
+                '<div style="flex-grow: 1; padding-left: 5px;">' +
+                    '<span style="font-weight: bold; font-size: 0.95rem;">' + name + '</span><br>' +
+                    '<span style="font-size: 0.8rem; color: #03dac6;">' + cost + ' Mana</span>' +
+                '</div>' +
+                '<div class="flex-row">' +
+                    '<button type="button" onclick="castSpell(' + currentId + ')" class="btn-action" style="background-color: #03dac6; color: #000; padding: 6px 12px; font-size: 0.9rem;">✨ Lancer</button>' +
+                    '<button type="button" onclick="removeSpell(' + currentId + ')" class="btn-action" style="background: transparent; color: #ff5252; padding: 5px; font-size: 1rem; border: 1px solid #ff5252;">❌</button>' +
+                '</div></div>';
+            
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function createSpellFromInput() {
+            var nameInput = document.getElementById('new-spell-name');
+            var costInput = document.getElementById('new-spell-cost');
+            createSpell(nameInput.value.trim(), parseInt(costInput.value));
+            nameInput.value = ""; costInput.value = "";
+        }
+
+        function castSpell(id) {
+            var spell = spellsDatabase[id];
+            if(!spell) return;
+
+            var manaInput = document.getElementById('mana-current');
+            var currentMana = parseInt(manaInput.value) || 0;
+
+            if (currentMana >= spell.spellCost) {
+                manaInput.value = currentMana - spell.spellCost;
+                logAction("✨ " + spell.spellName + " lancé. (-" + spell.spellCost + " Mana)");
+            } else {
+                alert("Pas assez de mana ! Il manque " + (spell.spellCost - currentMana) + " mana.");
+            }
+        }
+
+        function removeSpell(id) {
+            var el = document.getElementById('spell-box-' + id);
+            if(el) el.remove();
+        }
+
+        // --- OR ---
+        function addPO() {
+            var input = document.getElementById('po-amount');
+            var val = parseInt(input.value);
+            if(isNaN(val) || val <= 0) return;
+
+            var current = document.getElementById('po-current');
+            current.value = (parseInt(current.value) || 0) + val;
+            logAction("💰 +" + val + " PO.");
+            input.value = "";
+        }
+
+        function spendPO() {
+            var input = document.getElementById('po-amount');
+            var val = parseInt(input.value);
+            if(isNaN(val) || val <= 0) return;
+
+            var current = document.getElementById('po-current');
+            var currentVal = parseInt(current.value) || 0;
+
+            if (currentVal >= val) {
+                current.value = currentVal - val;
+                logAction("💸 -" + val + " PO.");
+            } else {
+                alert("Fonds insuffisants !");
+            }
+            input.value = "";
+        }
+
+        // --- MONSTRES ---
+        function addMob() {
+            mobIdCounter++;
+            var id = mobIdCounter;
+            var html = '<div class="enemy-card" id="mob-box-' + id + '">' +
+                '<div class="flex-row" style="margin-bottom: 10px;">' +
+                    '<input type="text" id="mob-name-' + id + '" value="Gobelin ' + id + '" style="font-weight:bold; flex-grow:1;">' +
+                    '<button type="button" onclick="removeMob(' + id + ')" class="btn-action" style="background: transparent; color: #ff5252; border: 1px solid #ff5252; padding: 5px;">❌</button>' +
+                '</div>' +
+                '<div class="form-group">' +
+                    '<div class="vital-box"><span style="font-size:0.8rem; color:#aaa;">PV:</span> <input type="number" id="mob-hp-' + id + '" style="color:#cf6679;" value="30"></div>' +
+                '</div>' +
+                '<div class="grid-2">' +
+                    '<div class="flex-row"><input type="number" id="dmg-out-' + id + '" placeholder="Infliger"><button type="button" onclick="dealDamage(' + id + ')" class="btn-action" style="background:#4CAF50; color:#fff;">⚔️</button></div>' +
+                    '<div class="flex-row"><input type="number" id="dmg-in-' + id + '" placeholder="Subir"><button type="button" onclick="takeDamage(' + id + ')" class="btn-action" style="background:#ff5252; color:#fff;">🩸</button></div>' +
+                '</div></div>';
+            
+            document.getElementById('mobs-cont
+        input[type="text"], input[type="number"], textarea {
+            width: 100%; background-color: var(--bg-color); border: 1px solid var(--border);
+            color: var(--text-color); padding: 10px; border-radius: 6px; box-sizing: border-box; font-size: 16px;
+        }
+        textarea { min-height: 100px; }
+        
+        button { width: 100%; background-color: var(--accent); color: #000; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; }
+        .btn-action { padding: 10px; margin: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; min-width: 45px; }
+        .btn-add-mob { background-color: transparent; border: 2px dashed var(--enemy-color); color: var(--enemy-color); margin-bottom: 15px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .flex-row { display: flex; gap: 5px; align-items: center; }
+
+        .vital-box { display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .vital-box input { text-align: center; font-weight: bold; padding: 8px 2px; }
+        .vitals-label { text-align: center; font-weight: bold; margin-bottom: 5px; font-size: 0.8rem;}
+        
+        .hp-input { color: var(--hp-color) !important; }
+        .mana-input { color: var(--mana-color) !important; }
+        .stress-input { color: var(--stress-color) !important; }
+        .mental-input { color: var(--mental-color) !important; }
+        .po-input { color: var(--gold-color) !important; font-size: 1.4rem !important; }
+
+        .turn-display { text-align: center; font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; background: #121212; padding: 10px; border-radius: 8px; }
+        
+        /* Barres de sauvegarde */
+        .save-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .save-btn { background-color: #4CAF50; color: white; padding: 12px; margin: 0; }
+        .clear-btn { background-color: #cf6679; color: white; padding: 12px; margin: 0; }
+    </style>
+</head>
+<body>
+
+    <h1>Tracker JDR Mobile</h1>
+
+    <!-- BARRE DE SAUVEGARDE -->
+    <div class="save-bar">
         <button type="button" class="save-btn" onclick="saveGame()">💾 Sauvegarder</button>
         <button type="button" class="clear-btn" onclick="clearSave()">🗑️ Nouvelle Partie</button>
     </div>
