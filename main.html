@@ -22,7 +22,7 @@
 
         body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px; padding-bottom: 40px; }
         h1, h2, h3 { margin-top: 0; color: var(--accent); text-align: center; }
-        h1 { font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        h1 { font-size: 1.5rem; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
         h2 { font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 15px; text-align: left; }
 
         .card { background-color: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
@@ -59,11 +59,22 @@
         .po-input { color: var(--gold-color) !important; font-size: 1.4rem !important; }
 
         .turn-display { text-align: center; font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; background: #121212; padding: 10px; border-radius: 8px; }
+        
+        /* Barres de sauvegarde */
+        .save-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .save-btn { background-color: #4CAF50; color: white; padding: 12px; margin: 0; }
+        .clear-btn { background-color: #cf6679; color: white; padding: 12px; margin: 0; }
     </style>
 </head>
 <body>
 
     <h1>Tracker JDR Mobile</h1>
+
+    <!-- BARRE DE SAUVEGARDE -->
+    <div class="save-bar">
+        <button type="button" class="save-btn" onclick="saveGame()">💾 Sauvegarder</button>
+        <button type="button" class="clear-btn" onclick="clearSave()">🗑️ Nouvelle Partie</button>
+    </div>
 
     <!-- COMBAT & ACTIONS -->
     <div class="card combat-card">
@@ -80,7 +91,7 @@
             <label>Historique / Log</label>
             <textarea id="action-log" placeholder="Les actions s'afficheront ici..."></textarea>
         </div>
-        <button type="button" onclick="resetCombat()" style="background-color: #444; color: #fff; font-size: 12px; padding: 8px;">Réinitialiser</button>
+        <button type="button" onclick="resetCombat()" style="background-color: #444; color: #fff; font-size: 12px; padding: 8px;">Réinitialiser le log</button>
     </div>
 
     <!-- VITALITÉ -->
@@ -168,15 +179,86 @@
         </div>
     </div>
 
-    <!-- SCRIPT (FONCTIONS CLASSIQUES) -->
     <script>
-        // Variables globales simples
+        // --- VARIABLES GLOBALES ---
         var turnCount = 1;
         var mobIdCounter = 0;
         var spellIdCounter = 0;
         var spellsDatabase = {};
 
-        // Utilitaire log
+        // --- SYSTEME DE SAUVEGARDE ---
+        function saveGame() {
+            // 1. Forcer la mise à jour des attributs HTML pour que la sauvegarde "photographie" les bonnes valeurs
+            document.querySelectorAll('input, textarea').forEach(function(el) {
+                el.setAttribute('value', el.value);
+                if (el.tagName.toLowerCase() === 'textarea') {
+                    el.innerHTML = el.value;
+                }
+            });
+
+            // 2. Préparer l'objet de sauvegarde
+            var saveData = {
+                turnCount: turnCount,
+                mobIdCounter: mobIdCounter,
+                spellIdCounter: spellIdCounter,
+                spellsDatabase: spellsDatabase,
+                mobsHTML: document.getElementById('mobs-container').innerHTML,
+                spellsHTML: document.getElementById('spells-list').innerHTML,
+                inputsValues: {}
+            };
+
+            // 3. Sauvegarder la valeur de TOUTES les cases (nom, stats, PV, etc.) par leur ordre d'apparition
+            var allInputs = document.querySelectorAll('input, textarea');
+            allInputs.forEach(function(el, index) {
+                saveData.inputsValues[index] = el.value;
+            });
+
+            // 4. Enregistrer dans le stockage local du téléphone
+            localStorage.setItem('jdrTrackerSave', JSON.stringify(saveData));
+            
+            logAction("💾 Partie sauvegardée !");
+            alert("Sauvegarde réussie ! Vous pouvez fermer la page, vos données sont en sécurité.");
+        }
+
+        function loadGame() {
+            var saved = localStorage.getItem('jdrTrackerSave');
+            if(saved) {
+                var data = JSON.parse(saved);
+                
+                // 1. Restaurer les compteurs
+                turnCount = data.turnCount || 1;
+                mobIdCounter = data.mobIdCounter || 0;
+                spellIdCounter = data.spellIdCounter || 0;
+                spellsDatabase = data.spellsDatabase || {};
+
+                document.getElementById('turn-counter').innerText = turnCount;
+
+                // 2. Restaurer la structure HTML (Monstres et Sorts)
+                document.getElementById('mobs-container').innerHTML = data.mobsHTML || "";
+                document.getElementById('spells-list').innerHTML = data.spellsHTML || "";
+
+                // 3. Restaurer les valeurs des cases
+                var allInputs = document.querySelectorAll('input, textarea');
+                allInputs.forEach(function(el, index) {
+                    if(data.inputsValues[index] !== undefined) {
+                        el.value = data.inputsValues[index];
+                    }
+                });
+
+                logAction("📂 Partie restaurée avec succès.");
+                return true; // Retourne vrai si une save existait
+            }
+            return false; // Faux si aucune save (première visite)
+        }
+
+        function clearSave() {
+            if(confirm("Êtes-vous sûr de vouloir tout effacer ? Toutes les stats, monstres et sorts seront perdus !")) {
+                localStorage.removeItem('jdrTrackerSave');
+                location.reload(); // Rafraichit la page
+            }
+        }
+
+        // --- UTILITAIRE LOG ---
         function logAction(text) {
             var log = document.getElementById('action-log');
             var time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -209,13 +291,8 @@
         function createSpellFromInput() {
             var nameInput = document.getElementById('new-spell-name');
             var costInput = document.getElementById('new-spell-cost');
-            var name = nameInput.value.trim();
-            var cost = parseInt(costInput.value);
-            
-            createSpell(name, cost);
-            
-            nameInput.value = "";
-            costInput.value = "";
+            createSpell(nameInput.value.trim(), parseInt(costInput.value));
+            nameInput.value = ""; costInput.value = "";
         }
 
         function castSpell(id) {
@@ -301,55 +378,4 @@
             
             var newHp = Math.max(0, (parseInt(hpInput.value) || 0) - dmg);
             hpInput.value = newHp;
-            logAction("⚔️ " + dmg + " dégâts infligés à " + name + " (Reste: " + newHp + ")");
-            document.getElementById('dmg-out-' + id).value = "";
-        }
-
-        function takeDamage(id) {
-            var dmg = parseInt(document.getElementById('dmg-in-' + id).value);
-            if(isNaN(dmg) || dmg <= 0) return;
-            var myHp = document.getElementById('hp-current');
-            var name = document.getElementById('mob-name-' + id).value;
-
-            var newHp = Math.max(0, (parseInt(myHp.value) || 0) - dmg);
-            myHp.value = newHp;
-            logAction("🩸 " + dmg + " dégâts subis par " + name + " (Reste: " + newHp + ")");
-            document.getElementById('dmg-in-' + id).value = "";
-        }
-
-        // --- TOUR & RESET ---
-        function nextTurn() {
-            turnCount++;
-            document.getElementById('turn-counter').innerText = turnCount;
-
-            var mana = document.getElementById('mana-current');
-            var maxMana = document.getElementById('mana-max');
-            if (parseInt(mana.value) < parseInt(maxMana.value)) {
-                mana.value = parseInt(mana.value) + 1;
-            }
-
-            var mental = document.getElementById('mental-current');
-            mental.value = Math.max(0, parseInt(mental.value) - 5);
-
-            logAction("--- TOUR " + turnCount + " --- [Mana +1 | Mental -5]");
-        }
-
-        function resetCombat() {
-            if(confirm("Réinitialiser ?")) {
-                turnCount = 1;
-                document.getElementById('turn-counter').innerText = turnCount;
-                document.getElementById('action-log').value = "";
-                document.getElementById('mobs-container').innerHTML = "";
-            }
-        }
-
-        // Lancement initial avec vos sorts par défaut
-        window.onload = function() {
-            addMob();
-            createSpell("Heal", 3);
-            createSpell("Mur magique", 3);
-            createSpell("Tourelle magique", 4);
-        };
-    </script>
-</body>
-</html>
+            logAction("⚔️ " + dmg + " dégâts infligés à " + name + " (Reste:
