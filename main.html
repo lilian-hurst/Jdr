@@ -378,4 +378,58 @@
             
             var newHp = Math.max(0, (parseInt(hpInput.value) || 0) - dmg);
             hpInput.value = newHp;
-            logAction("⚔️ " + dmg + " dégâts infligés à " + name + " (Reste:
+            logAction("⚔️ " + dmg + " dégâts infligés à " + name + " (Reste: " + newHp + ")");
+            document.getElementById('dmg-out-' + id).value = "";
+        }
+
+        function takeDamage(id) {
+            var dmg = parseInt(document.getElementById('dmg-in-' + id).value);
+            if(isNaN(dmg) || dmg <= 0) return;
+            var myHp = document.getElementById('hp-current');
+            var name = document.getElementById('mob-name-' + id).value;
+
+            var newHp = Math.max(0, (parseInt(myHp.value) || 0) - dmg);
+            myHp.value = newHp;
+            logAction("🩸 " + dmg + " dégâts subis par " + name + " (Reste: " + newHp + ")");
+            document.getElementById('dmg-in-' + id).value = "";
+        }
+
+        // --- TOUR & RESET ---
+        function nextTurn() {
+            turnCount++;
+            document.getElementById('turn-counter').innerText = turnCount;
+
+            var mana = document.getElementById('mana-current');
+            var maxMana = document.getElementById('mana-max');
+            if (parseInt(mana.value) < parseInt(maxMana.value)) {
+                mana.value = parseInt(mana.value) + 1;
+            }
+
+            var mental = document.getElementById('mental-current');
+            mental.value = Math.max(0, parseInt(mental.value) - 5);
+
+            logAction("--- TOUR " + turnCount + " --- [Mana +1 | Mental -5]");
+        }
+
+        function resetCombat() {
+            if(confirm("Réinitialiser l'historique du combat ?")) {
+                turnCount = 1;
+                document.getElementById('turn-counter').innerText = turnCount;
+                document.getElementById('action-log').value = "";
+                document.getElementById('mobs-container').innerHTML = "";
+            }
+        }
+
+        // --- INITIALISATION ---
+        window.onload = function() {
+            // Tente de charger une sauvegarde. Si aucune n'existe, on met les valeurs par défaut
+            if (!loadGame()) {
+                addMob();
+                createSpell("Heal", 3);
+                createSpell("Mur magique", 3);
+                createSpell("Tourelle magique", 4);
+            }
+        };
+    </script>
+</body>
+</html>
